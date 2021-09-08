@@ -12,6 +12,17 @@ public:
 	// think about what else should be included as member variables
 	int block_size;  // size of the block
 	BlockHeader* next; // pointer to the next block
+
+	// testing functions
+	void setSize(int size) {
+		block_size = size;
+	}
+	int getSize() {
+		return block_size;
+	}
+
+	BlockHeader(int bSize = 0) : block_size(bSize) {}
+
 };
 
 class LinkedList{
@@ -20,11 +31,48 @@ public:
 	BlockHeader* head;		// you need a head of the list
 public:
 	void insert (BlockHeader* b){	// adds a block to the list
+		// if head node is null
+		if (head == nullptr) {
+			head = b;
+			return;
+		}
 
+		// else traverse till last node
+		BlockHeader* current = head;
+		while (current->next != nullptr) {
+			current = current -> next;
+		}
+
+		current -> next = b;
 	}
 
 	void remove (BlockHeader* b){  // removes a block from the list
+		// if empty
+		if (head == nullptr) {
+			return;
+		}
 
+		// if head
+		if (head == b) {
+			BlockHeader* temp = head;
+			head = temp->next;
+			delete temp;
+			return;
+		}
+
+		// else traverse to find match and remove it
+		BlockHeader* current = head;
+		BlockHeader* prev = nullptr;
+		while (current != nullptr) {
+			if (current == b) {
+				// remove b
+				prev->next = current->next;
+				delete current;
+				return;
+			}
+			prev = current;
+			current = current -> next;
+		}
 	}
 };
 
