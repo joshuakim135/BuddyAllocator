@@ -10,10 +10,19 @@ BuddyAllocator::~BuddyAllocator (){
 	
 }
 
+// length = number of usable bytes [block - header]
+// return address of first byte of usable memory not block header
 char* BuddyAllocator::alloc(int _length) {
   /* This preliminary implementation simply hands the call over the 
      the C standard library! 
      Of course this needs to be replaced by your implementation.
+  */
+  /*
+    1. Calculate smallest block size (sbs) needed for provided length
+    2. Use FreeList to find available block of sbs or larger
+    3. If block is larger than sbs, call split function until we reach sbs
+    4. Once sbs blocks are available on the FreeList, remove one from the FreeList
+    5. Shift the address down sizeof(BlockHeader) bytes and return it
   */
   return new char [_length];
 }

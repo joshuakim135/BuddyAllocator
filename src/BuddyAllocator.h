@@ -12,6 +12,7 @@ public:
 	// think about what else should be included as member variables
 	int block_size;  // size of the block
 	BlockHeader* next; // pointer to the next block
+	bool free; // check
 
 	// testing functions
 	void setSize(int size) {
@@ -97,10 +98,32 @@ private:
 	BlockHeader* merge (BlockHeader* block1, BlockHeader* block2);
 	// this function merges the two blocks returns the beginning address of the merged block
 	// note that either block1 can be to the left of block2, or the other way around
+	// return the address of the BlockHeader at the front of the merged block
+	/*
+		1. Check that the two blocks are buddies
+		2. Remove both blocks from the FreeList
+		3. Update the BlockHeader of the left block
+			- Size of the block
+		4. Add new, bigger block to FreeList
+		5. Return the left block's BlockHeader
+	*/
+
+
 
 	BlockHeader* split (BlockHeader* block);
 	// splits the given block by putting a new header halfway through the block
 	// also, the original header needs to be corrected
+	/*
+		return first  block address of second block
+		1. Remove provided block from FreeList
+		2. Update size in provided BlockHeader* to be half of original value
+		3. Find the buddy of the provided BlockHeader*
+			- Use getbuddy() with the new block size
+		4. Fill the first sizeof(BlockHeader) bytes of the buddy with relevant info from the BlockH.
+			- Use typecast
+		5. Add both blocks to FreeList at new size
+		6. Return buddy's pointer
+	*/
 
 
 public:
@@ -121,10 +144,25 @@ public:
 	/* Allocate _length number of bytes of free memory and returns the 
 		address of the allocated portion. Returns 0 when out of memory. */ 
 
+	// address of usable memory is _a
 	int free(char* _a); 
 	/* Frees the section of physical memory previously allocated 
-	   using ’my_malloc’. Returns 0 if everything ok. */ 
-   
+	   using ’my_malloc’. Returns 0 if everything ok and -1 if it failed. */ 
+	/*
+		1. Shift address from usable memory to BlockH
+		2. Check if block is on FreeList
+			- if so return non-zero
+		3. Add block to FreeList
+		4. Check if buddy is free
+			- Use getbuddy() and check free bool if you choose to use one in BlockHeader
+			- Otherwise, iterate through FreeList of same size and call arebuddies() for each address until true
+		5. If buddy is free, call merge and go back to 4
+			- Continue until we reaach total memory size or buddy is not free
+		6. If everything is smooth, return 0
+	*/
+
+
+
 	void printlist ();
 	/* Mainly used for debugging purposes and running short test cases */
 	/* This function should print how many free blocks of each size belong to the allocator
