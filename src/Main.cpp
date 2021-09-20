@@ -18,7 +18,7 @@ void easytest(BuddyAllocator* ba){
 }
 
 int main(int argc, char ** argv) {
-
+  cout << "Hello World" << endl;
   int basic_block_size = 128, memory_length = 128 * 1024 * 1024;
 
   // create memory manager
@@ -29,9 +29,10 @@ int main(int argc, char ** argv) {
 
   
   // stress-test the memory manager, do this only after you are done with small test cases
+  /*
   Ackerman* am = new Ackerman ();
   am->test(allocator); // this is the full-fledged test. 
-  
+  */
   // destroy memory manager
   delete allocator;
 }

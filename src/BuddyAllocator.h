@@ -13,17 +13,7 @@ public:
 	int block_size;  // size of the block
 	BlockHeader* next; // pointer to the next block
 	bool free; // check
-
-	// testing functions
-	void setSize(int size) {
-		block_size = size;
-	}
-	int getSize() {
-		return block_size;
-	}
-
 	BlockHeader(int bSize = 0) : block_size(bSize) {}
-
 };
 
 class LinkedList{
@@ -31,13 +21,16 @@ class LinkedList{
 public:
 	BlockHeader* head;		// you need a head of the list
 public:
+	LinkedList();
+
 	void insert (BlockHeader* b){	// adds a block to the list
 		// if head node is null
+		cout << "Made it" << endl;
 		if (head == nullptr) {
 			head = b;
 			return;
 		}
-
+		cout << "Made it" << endl;
 		// else traverse till last node
 		BlockHeader* current = head;
 		while (current->next != nullptr) {
