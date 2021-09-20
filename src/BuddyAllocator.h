@@ -21,7 +21,9 @@ class LinkedList{
 public:
 	BlockHeader* head;		// you need a head of the list
 public:
-	LinkedList();
+	LinkedList(BlockHeader* h = nullptr) {
+		head = h;
+	}
 
 	void insert (BlockHeader* b){	// adds a block to the list
 		// if head node is null
@@ -77,6 +79,7 @@ private:
 	vector<LinkedList> FreeList;
 	int basic_block_size;
 	int total_memory_size;
+	char* start;
 
 private:
 	/* private function you are required to implement

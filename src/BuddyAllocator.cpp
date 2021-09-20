@@ -1,13 +1,21 @@
 #include "BuddyAllocator.h"
 #include <iostream>
+#include <math.h>
 using namespace std;
 
 BuddyAllocator::BuddyAllocator (int _basic_block_size, int _total_memory_length){
-	
+  total_memory_size = _total_memory_length, basic_block_size = _basic_block_size;
+  start = new char[total_memory_size];
+  int l = log2 (total_memory_size/basic_block_size);
+  for (int i=0; i<1; i++) {
+    FreeList.push_back(LinkedList());
+  }
+  FreeList.push_back (LinkedList((BlockHeader*)start));
+  BlockHeader* h = new (start) BlockHeader (total_memory_size);
 }
 
 BuddyAllocator::~BuddyAllocator (){
-	
+	delete [] start;
 }
 
 // length = number of usable bytes [block - header]
