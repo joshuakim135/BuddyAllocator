@@ -44,7 +44,7 @@ char* BuddyAllocator::alloc(int _length) {
     5. Shift the address down sizeof(BlockHeader) bytes and return it
   */
   int x = _length + sizeof(BlockHeader);
-  int index = (int) log2(ceil((double) x / basic_block_size));
+  int index = ceil(log2(ceil((double) x / basic_block_size)));
   int blockSizeReturn = (1 << index) * basic_block_size;
   if (FreeList[index].head != nullptr) { // found a block of correct size
     // return FreeList[index].remove();
