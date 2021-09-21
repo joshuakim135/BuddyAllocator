@@ -7,7 +7,7 @@ BuddyAllocator::BuddyAllocator (int _basic_block_size, int _total_memory_length)
   total_memory_size = _total_memory_length, basic_block_size = _basic_block_size;
   start = new char[total_memory_size];
   int l = log2 (total_memory_size/basic_block_size);
-  for (int i=0; i<1; i++) {
+  for (int i=0; i<l; i++) {
     FreeList.push_back(LinkedList());
   }
   FreeList.push_back (LinkedList((BlockHeader*)start));
@@ -32,6 +32,8 @@ char* BuddyAllocator::alloc(int _length) {
     4. Once sbs blocks are available on the FreeList, remove one from the FreeList
     5. Shift the address down sizeof(BlockHeader) bytes and return it
   */
+
+  
   return new char [_length];
 }
 

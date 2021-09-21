@@ -13,7 +13,7 @@ public:
 	int block_size;  // size of the block
 	BlockHeader* next; // pointer to the next block
 	bool free; // check
-	BlockHeader(int bSize = 0) : block_size(bSize) {}
+	BlockHeader(int bSize = 0) : block_size(bSize), next(nullptr) {}
 };
 
 class LinkedList{
