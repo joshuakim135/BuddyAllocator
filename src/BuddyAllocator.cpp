@@ -32,9 +32,19 @@ char* BuddyAllocator::alloc(int _length) {
     4. Once sbs blocks are available on the FreeList, remove one from the FreeList
     5. Shift the address down sizeof(BlockHeader) bytes and return it
   */
+  int x = _length + sizeof(BlockHeader);
+  int index = (int) log2(ceil((double) x / basic_block_size));
+  if (FreeList[index].head != nullptr) { // found a block of correct size
+    // return FreeList[index].remove();
+    BlockHeader* b = FreeList[index].remove();
+  }
 
-  
   return new char [_length];
+}
+
+int BuddyAllocator::sbsNeeded(int blockSize){
+
+  return 0;
 }
 
 int BuddyAllocator::free(char* _a) {

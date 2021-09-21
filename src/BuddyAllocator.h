@@ -2,6 +2,7 @@
 #define _BuddyAllocator_h_
 #include <iostream>
 #include <vector>
+#include <assert.h>
 using namespace std;
 typedef unsigned int uint;
 
@@ -42,7 +43,7 @@ public:
 		current -> next = b;
 	}
 
-	void remove (BlockHeader* b){  // removes a block from the list
+	void remove (BlockHeader* b) {
 		// if empty
 		if (head == nullptr) {
 			return;
@@ -70,8 +71,14 @@ public:
 			current = current -> next;
 		}
 	}
-};
 
+	BlockHeader* remove () {  // removes and returns first item from the list
+		assert (head != nullptr);
+		BlockHeader* b = head;
+		head = head->next;
+		return b;
+	};
+};
 
 class BuddyAllocator{
 private:
@@ -141,6 +148,9 @@ public:
 		address of the allocated portion. Returns 0 when out of memory. */ 
 
 	// address of usable memory is _a
+
+	int sbsNeeded(int blockSize);
+
 	int free(char* _a); 
 	/* Frees the section of physical memory previously allocated 
 	   using ’my_malloc’. Returns 0 if everything ok and -1 if it failed. */ 
