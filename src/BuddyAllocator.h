@@ -26,17 +26,11 @@ class LinkedList{
 	// this is a special linked list that is made out of BlockHeader s. 
 public:
 	BlockHeader* head;		// you need a head of the list
-	int _size;
 public:
 	LinkedList(BlockHeader* h = nullptr) {
 		head = h;
-		if (head != nullptr) {
-			_size = 1;
-		} else {
-			_size = 0;
-		}
-	}
-	int size() {return _size;};
+	};
+
 	void insert(BlockHeader* block);
 	void remove(BlockHeader* block);
 
@@ -44,7 +38,6 @@ public:
 		assert (head != nullptr);
 		BlockHeader* b = head;
 		head = head->next;
-		_size--;
 		return b;
 	};
 };
@@ -105,24 +98,15 @@ private:
 		6. Return buddy's pointer
 	*/
 	int getIndex(int size) {
-		return log2 (size/basic_block_size);
-	}
-
-	int freeListINdexForSize(int size, bool checkValidity = true) {
-		int basicPowerOf2 = this->basic_block_size;
-		int sizePowerOf2 = size;
-
-		int index = (sizePowerOf2 - basicPowerOf2);
-
-		if (checkValidity && index > FreeList.size()) {
-			return 0;
-		}
-
-		return index;
+		return ceil(log2 (size/basic_block_size));
 	}
 
 
 public:
+	vector<LinkedList> getFreeList() {
+		return FreeList;
+	}
+
 	BuddyAllocator (int _basic_block_size, int _total_memory_length); 
 	/* This initializes the memory allocator and makes a portion of 
 	   ’_total_memory_length’ bytes available. The allocator uses a ’_basic_block_size’ as 

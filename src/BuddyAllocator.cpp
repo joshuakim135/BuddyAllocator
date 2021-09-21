@@ -25,6 +25,7 @@ BuddyAllocator::BuddyAllocator (int _basic_block_size, int _total_memory_length)
   for (int i=0; i<l; i++) {
     FreeList.push_back(LinkedList());
   }
+  cout << FreeList[FreeList.size()-1].head << endl;
   FreeList.push_back(LinkedList((BlockHeader*)start));
   BlockHeader* h = new (start) BlockHeader (total_memory_size);
 }
@@ -69,19 +70,18 @@ char* BuddyAllocator::alloc(int _length) {
   // a bigger block found
   while (index > indexCorrect) {
     BlockHeader* b = FreeList[index].remove();
-    //b->isFree = 0;
+    b->isFree = 0;
     BlockHeader* shb = split(b);
     --index;
     FreeList[index].insert (b);
+    b->isFree = 1;
     FreeList[index].insert (shb);
+    shb->isFree = 1;
   }
-  /*
+  
   BlockHeader* block = FreeList[index].remove();
   block->isFree = 0;
   return (char*)(block + 1);
-  */
-// FreeList[index].head->isFree = 0;
- return (char*)(FreeList[index].remove() + 1);
 }
 
 BlockHeader* BuddyAllocator::merge(BlockHeader* block1, BlockHeader* block2) {
@@ -94,21 +94,22 @@ BlockHeader* BuddyAllocator::merge(BlockHeader* block1, BlockHeader* block2) {
 }
 
 void LinkedList::insert(BlockHeader *block) {
-		// if head node is null
-		if (head == nullptr) {
-			head = block;
-			_size++;
-			return;
-		}
+    if (block == head) {
+      return;
+    }
+    BlockHeader* nodeToInsert = block;
+    nodeToInsert->next = nullptr;
+    if (head == nullptr) {
+      head = nodeToInsert;
+      return;
+    }
 
-		// else traverse till last node
-		BlockHeader* current = head;
-		while (current->next != nullptr) {
-			current = current -> next;
-		}
+    BlockHeader* current = head;
+    while (current->next != nullptr) {
+      current = current->next;
+    }
 
-		current -> next = block;
-		_size++;
+    current -> next = nodeToInsert;
 }
 
 void LinkedList::remove(BlockHeader *block) {
@@ -117,13 +118,12 @@ void LinkedList::remove(BlockHeader *block) {
   }
 
   if (head == block) {
+    BlockHeader* current = head;
     if (head->next != nullptr) {
       head = head->next;
-      _size--;
       return;
     } else {
       head = nullptr;
-      _size--;
       return;
     }
   } else if (head != block && head->next == nullptr) {
@@ -132,17 +132,13 @@ void LinkedList::remove(BlockHeader *block) {
 
   BlockHeader* current = head;
   BlockHeader* prev = nullptr;
-  while (current->next != nullptr && current != block) {
+  while ((current->next != nullptr) && (current != block)) {
     prev = current;
     current = current->next;
-    cout << prev << endl;
-    cout << current << endl;
   }
 
   if (current == block) {
     prev->next = prev->next->next;
-    _size--;
-    delete current;
   }
 }
 
@@ -161,36 +157,38 @@ int BuddyAllocator::free(char* _a) {
 			- Continue until we reaach total memory size or buddy is not free
 		6. If everything is smooth, return 0
 	*/
-
+  
   BlockHeader* b = (BlockHeader*)(_a - sizeof(BlockHeader));
-  b->isFree = 1;
   int index = getIndex(b->block_size);
+  
   BlockHeader* header = FreeList[index].head;
-  while(header != nullptr) {
-    if (header == b) {
-      return -1;
-    }
-    header = header->next;
+
+  if (b->isFree) {
+    return -1;
   }
   FreeList[index].insert(b);
-
+  b->isFree = 1;
+  
+  index = getIndex(b->block_size);
   while(true) {
     if (index == FreeList.size() - 1) { // here
       FreeList[index].insert(b);
       break;
     }
+    
+    /*
     cout << "index: " << index << endl;
     BlockHeader* current = FreeList[0].head;
     while (current != nullptr) {
       cout << current << endl;
       current = current->next;
-    }
-    printlist();
+    }*/
+    
     BlockHeader* buddy = getbuddy(b);
-    if ((buddy->isFree == 1)&&(b->block_size == buddy->block_size)) {
+    if (((buddy->isFree) == 1)&&(b->block_size == buddy->block_size)) {
       b = merge(b, buddy);
-      FreeList[index].remove(b);
       FreeList[index].remove(buddy);
+      FreeList[index].remove(b);
       FreeList[getIndex(b->block_size)].insert(b);
       b->isFree = 1;
       index = getIndex(b->block_size);
@@ -240,6 +238,7 @@ void BuddyAllocator::printlist (){
     BlockHeader* b = FreeList [i].head;
     // go through the list from head to tail and count
     while (b){
+      // cout << b << endl;
       count ++;
       // block size at index should always be 2^i * bbs
       // checking to make sure that the block is not out of place

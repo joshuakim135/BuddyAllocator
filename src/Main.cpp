@@ -1,5 +1,6 @@
 #include "Ackerman.h"
 #include "BuddyAllocator.h"
+#include <vector>
 #include <stdio.h>
 #include <unistd.h>
 #include <getopt.h>
@@ -48,17 +49,10 @@ int main(int argc, char ** argv) {
 
 
   // the following won't print anything until you start using FreeList and replace the "new" with your own implementation
-  /*
   easytest (allocator);
-  */
+  
   
   // stress-test the memory manager, do this only after you are done with small test cases
-  
-  allocator->printlist();
-  char* addr = allocator->alloc(1);
-  allocator->printlist();
-  allocator->free(addr);
-  allocator->printlist();
 
 
   Ackerman* am = new Ackerman ();
