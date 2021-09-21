@@ -15,7 +15,11 @@ public:
 	int block_size;  // size of the block
 	BlockHeader* next; // pointer to the next block
 	char isFree; // 1 means free, 0 is not free
-	BlockHeader(int bSize = 0) : block_size(bSize), next(nullptr), isFree(1) {}
+	BlockHeader(int bSize = 0) {
+		block_size = bSize;
+		next = nullptr;
+		isFree = 1;
+	};
 };
 
 class LinkedList{
@@ -26,48 +30,21 @@ public:
 public:
 	LinkedList(BlockHeader* h = nullptr) {
 		head = h;
+		if (head != nullptr) {
+			_size = 1;
+		} else {
+			_size = 0;
+		}
 	}
 	int size() {return _size;};
 	void insert(BlockHeader* block);
 	void remove(BlockHeader* block);
-	/*
-	void insert (BlockHeader* b){	// adds a block to the list
-		// if head node is null
 
-		if (head == nullptr) {
-			head = b;
-			_size++;
-			return;
-		}
-
-		// else traverse till last node
-		BlockHeader* current = head;
-		while (current->next != nullptr) {
-			current = current -> next;
-		}
-
-		current -> next = b;
-		_size++;
-	}
-
-	void remove (BlockHeader* b) {
-		if (head == nullptr) {
-			return;
-		} else if (head == b) {
-			BlockHeader* temp = head;
-			cout << head->block_size << endl;
-			cout << b->block_size << endl;
-			head = head->next;
-			_size--;
-			delete temp;
-			return;
-		}
-	}
-	*/
 	BlockHeader* remove () {  // removes and returns first item from the list
 		assert (head != nullptr);
 		BlockHeader* b = head;
 		head = head->next;
+		_size--;
 		return b;
 	};
 };
@@ -164,8 +141,6 @@ public:
 		address of the allocated portion. Returns 0 when out of memory. */ 
 
 	// address of usable memory is _a
-
-	int sbsNeeded(int blockSize);
 
 	int free(char* _a); 
 	/* Frees the section of physical memory previously allocated 

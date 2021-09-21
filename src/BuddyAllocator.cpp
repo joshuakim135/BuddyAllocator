@@ -25,7 +25,7 @@ BuddyAllocator::BuddyAllocator (int _basic_block_size, int _total_memory_length)
   for (int i=0; i<l; i++) {
     FreeList.push_back(LinkedList());
   }
-  FreeList.push_back (LinkedList((BlockHeader*)start));
+  FreeList.push_back(LinkedList((BlockHeader*)start));
   BlockHeader* h = new (start) BlockHeader (total_memory_size);
 }
 
@@ -45,10 +45,8 @@ char* BuddyAllocator::alloc(int _length) {
   */
 
   int x = _length + sizeof(BlockHeader);
-  cout << x << endl;
   int index = ceil(log2(ceil((double) x / basic_block_size)));
-  cout << index << endl;
-  int blockSizeReturn = (1 << index) * basic_block_size;
+  //int blockSizeReturn = (1 << index) * basic_block_size;
 
   if (FreeList[index].head != nullptr) { // found a block of correct size
     // return FreeList[index].remove();
@@ -77,9 +75,13 @@ char* BuddyAllocator::alloc(int _length) {
     FreeList[index].insert (b);
     FreeList[index].insert (shb);
   }
+  /*
   BlockHeader* block = FreeList[index].remove();
   block->isFree = 0;
   return (char*)(block + 1);
+  */
+// FreeList[index].head->isFree = 0;
+ return (char*)(FreeList[index].remove() + 1);
 }
 
 BlockHeader* BuddyAllocator::merge(BlockHeader* block1, BlockHeader* block2) {
@@ -93,7 +95,6 @@ BlockHeader* BuddyAllocator::merge(BlockHeader* block1, BlockHeader* block2) {
 
 void LinkedList::insert(BlockHeader *block) {
 		// if head node is null
-
 		if (head == nullptr) {
 			head = block;
 			_size++;
@@ -112,30 +113,37 @@ void LinkedList::insert(BlockHeader *block) {
 
 void LinkedList::remove(BlockHeader *block) {
   if (head == nullptr) {
-			return;
-		} else if (head == block) {
-			BlockHeader* temp = head;
-			cout << head->block_size << endl;
-			cout << block->block_size << endl;
-			head = head->next;
-			_size--;
-			delete temp;
-			return;
-		}
+    return;
+  }
 
-    // else traverse to find match and remove it
-		BlockHeader* current = head;
-		BlockHeader* prev = nullptr;
-		while (current != nullptr) {
-			if (current == block) {
-				// remove b
-				prev->next = current->next;
-				delete current;
-				return;
-			}
-			prev = current;
-			current = current -> next;
-		}
+  if (head == block) {
+    if (head->next != nullptr) {
+      head = head->next;
+      _size--;
+      return;
+    } else {
+      head = nullptr;
+      _size--;
+      return;
+    }
+  } else if (head != block && head->next == nullptr) {
+    return;
+  }
+
+  BlockHeader* current = head;
+  BlockHeader* prev = nullptr;
+  while (current->next != nullptr && current != block) {
+    prev = current;
+    current = current->next;
+    cout << prev << endl;
+    cout << current << endl;
+  }
+
+  if (current == block) {
+    prev->next = prev->next->next;
+    _size--;
+    delete current;
+  }
 }
 
 int BuddyAllocator::free(char* _a) {
@@ -153,7 +161,9 @@ int BuddyAllocator::free(char* _a) {
 			- Continue until we reaach total memory size or buddy is not free
 		6. If everything is smooth, return 0
 	*/
+
   BlockHeader* b = (BlockHeader*)(_a - sizeof(BlockHeader));
+  b->isFree = 1;
   int index = getIndex(b->block_size);
   BlockHeader* header = FreeList[index].head;
   while(header != nullptr) {
@@ -163,18 +173,29 @@ int BuddyAllocator::free(char* _a) {
     header = header->next;
   }
   FreeList[index].insert(b);
+
   while(true) {
-    if (index >= FreeList.size() - 1) {
+    if (index == FreeList.size() - 1) { // here
+      FreeList[index].insert(b);
       break;
     }
-    index = getIndex(b->block_size);
+    cout << "index: " << index << endl;
+    BlockHeader* current = FreeList[0].head;
+    while (current != nullptr) {
+      cout << current << endl;
+      current = current->next;
+    }
+    printlist();
     BlockHeader* buddy = getbuddy(b);
     if ((buddy->isFree == 1)&&(b->block_size == buddy->block_size)) {
       b = merge(b, buddy);
       FreeList[index].remove(b);
       FreeList[index].remove(buddy);
       FreeList[getIndex(b->block_size)].insert(b);
+      b->isFree = 1;
+      index = getIndex(b->block_size);
     } else {
+      // FreeList[getIndex(b->block_size)].insert(b);
       break;
     }
   }

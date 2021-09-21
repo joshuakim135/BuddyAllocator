@@ -53,6 +53,7 @@ int main(int argc, char ** argv) {
   */
   
   // stress-test the memory manager, do this only after you are done with small test cases
+  
   allocator->printlist();
   char* addr = allocator->alloc(1);
   allocator->printlist();
