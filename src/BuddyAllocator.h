@@ -87,7 +87,8 @@ private:
 	int basic_block_size;
 	int total_memory_size;
 	char* start;
-
+	
+	
 private:
 	/* private function you are required to implement
 	 this will allow you and us to do unit test */

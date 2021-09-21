@@ -3,6 +3,17 @@
 #include <math.h>
 using namespace std;
 
+BlockHeader* BuddyAllocator::split (BlockHeader* b) {
+  int bs = b->block_size;
+  b->block_size /= 2;
+  b->next = nullptr;
+
+  BlockHeader* sh = (BlockHeader*)((char*)b + b->block_size);
+  // sh->next = nullptr, sh->block_size = b->block_size;
+  BlockHeader* temp = new (sh) BlockHeader (b->block_size);
+  return sh;
+}
+
 BuddyAllocator::BuddyAllocator (int _basic_block_size, int _total_memory_length){
   total_memory_size = _total_memory_length, basic_block_size = _basic_block_size;
   start = new char[total_memory_size];
@@ -34,12 +45,34 @@ char* BuddyAllocator::alloc(int _length) {
   */
   int x = _length + sizeof(BlockHeader);
   int index = (int) log2(ceil((double) x / basic_block_size));
+  int blockSizeReturn = (1 << index) * basic_block_size;
   if (FreeList[index].head != nullptr) { // found a block of correct size
     // return FreeList[index].remove();
     BlockHeader* b = FreeList[index].remove();
+    return (char*)(b + 1);
   }
 
-  return new char [_length];
+  int indexCorrect = index;
+  for (; index < FreeList.size(); index++) {
+    if (FreeList[index].head) {
+      break;
+    }
+  }
+
+  if (index >= FreeList.size()) { // no bigger block found
+    return nullptr;
+  }
+
+  // a bigger block found
+  while (index > indexCorrect) {
+    BlockHeader* b = FreeList[index].remove();
+    BlockHeader* shb = split(b);
+    --index;
+    FreeList[index].insert (b);
+    FreeList[index].insert (shb);
+  }
+
+  return (char*)(FreeList[index].remove() + 1);
 }
 
 int BuddyAllocator::sbsNeeded(int blockSize){
