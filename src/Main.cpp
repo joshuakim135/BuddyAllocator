@@ -1,5 +1,8 @@
 #include "Ackerman.h"
 #include "BuddyAllocator.h"
+#include <stdio.h>
+#include <unistd.h>
+#include <getopt.h>
 
 void easytest(BuddyAllocator* ba){
   // be creative here
@@ -18,21 +21,48 @@ void easytest(BuddyAllocator* ba){
 }
 
 int main(int argc, char ** argv) {
-  cout << "Hello World" << endl;
-  int basic_block_size = 128, memory_length = 128 * 1024 * 1024;
+  // 512 kb = 524288b, 64mb = 67108864
+  int basic_block_size = 128, memory_length = 524288;
+  
+  int opt;
+  while((opt = getopt(argc, argv, "b:s:")) != -1) { 
+    switch(opt) { 
+      case 'b':
+        if (optarg != nullptr) {
+          basic_block_size = atoi(optarg);
+        }
+        break;
+      case 's':
+        if (optarg != nullptr) {
+          memory_length = atoi(optarg);
+        }
+        break;
+      default:
+        cout << "Incorrect option\n" << endl;
+        return 1;
+    } 
+  }
 
   // create memory manager
   BuddyAllocator * allocator = new BuddyAllocator(basic_block_size, memory_length);
 
-  // the following won't print anything until you start using FreeList and replace the "new" with your own implementation
-  easytest (allocator);
 
+  // the following won't print anything until you start using FreeList and replace the "new" with your own implementation
+  /*
+  easytest (allocator);
+  */
   
   // stress-test the memory manager, do this only after you are done with small test cases
-  /*
+  allocator->printlist();
+  char* addr = allocator->alloc(1);
+  allocator->printlist();
+  allocator->free(addr);
+  allocator->printlist();
+
+
   Ackerman* am = new Ackerman ();
   am->test(allocator); // this is the full-fledged test. 
-  */
+  
   // destroy memory manager
   delete allocator;
 }

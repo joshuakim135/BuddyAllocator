@@ -54,11 +54,11 @@ int Ackerman::Recurse(int a, int b) {
 /* This is the implementation of the Ackerman function. The function itself is very function is very simple (just two recursive calls). We use it to exercise the
    memory allocator (see "my_alloc" and "my_free"). For this, there are additional calls to "gettimeofday" to measure the elapsed time.
  */
-
+  
   /* The size "to_alloc" of the region to allocate is computed randomly: */
   int to_alloc =  ((2 << (rand() % 19)) * (rand() % 100)) / 100;
   if  (to_alloc < 4) to_alloc = 4;
-
+  
   int result = 0;
   char* mem = ba->alloc(to_alloc);  // request memory
   num_allocations++;

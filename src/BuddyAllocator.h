@@ -22,19 +22,24 @@ class LinkedList{
 	// this is a special linked list that is made out of BlockHeader s. 
 public:
 	BlockHeader* head;		// you need a head of the list
+	int _size;
 public:
 	LinkedList(BlockHeader* h = nullptr) {
 		head = h;
 	}
-
+	int size() {return _size;};
+	void insert(BlockHeader* block);
+	void remove(BlockHeader* block);
+	/*
 	void insert (BlockHeader* b){	// adds a block to the list
 		// if head node is null
-		cout << "Made it" << endl;
+
 		if (head == nullptr) {
 			head = b;
+			_size++;
 			return;
 		}
-		cout << "Made it" << endl;
+
 		// else traverse till last node
 		BlockHeader* current = head;
 		while (current->next != nullptr) {
@@ -42,37 +47,23 @@ public:
 		}
 
 		current -> next = b;
+		_size++;
 	}
 
 	void remove (BlockHeader* b) {
-		// if empty
 		if (head == nullptr) {
 			return;
-		}
-
-		// if head
-		if (head == b) {
+		} else if (head == b) {
 			BlockHeader* temp = head;
-			head = temp->next;
+			cout << head->block_size << endl;
+			cout << b->block_size << endl;
+			head = head->next;
+			_size--;
 			delete temp;
 			return;
 		}
-
-		// else traverse to find match and remove it
-		BlockHeader* current = head;
-		BlockHeader* prev = nullptr;
-		while (current != nullptr) {
-			if (current == b) {
-				// remove b
-				prev->next = current->next;
-				delete current;
-				return;
-			}
-			prev = current;
-			current = current -> next;
-		}
 	}
-
+	*/
 	BlockHeader* remove () {  // removes and returns first item from the list
 		assert (head != nullptr);
 		BlockHeader* b = head;
@@ -88,7 +79,6 @@ private:
 	int basic_block_size;
 	int total_memory_size;
 	char* start;
-	
 
 private:
 	/* private function you are required to implement
@@ -140,6 +130,20 @@ private:
 	int getIndex(int size) {
 		return log2 (size/basic_block_size);
 	}
+
+	int freeListINdexForSize(int size, bool checkValidity = true) {
+		int basicPowerOf2 = this->basic_block_size;
+		int sizePowerOf2 = size;
+
+		int index = (sizePowerOf2 - basicPowerOf2);
+
+		if (checkValidity && index > FreeList.size()) {
+			return 0;
+		}
+
+		return index;
+	}
+
 
 public:
 	BuddyAllocator (int _basic_block_size, int _total_memory_length); 

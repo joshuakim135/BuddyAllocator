@@ -1,5 +1,8 @@
 #include "BuddyAllocator.h"
 #include <iostream>
+#include <cstdint>
+#include <iomanip>
+#include <stdexcept>
 #include <math.h>
 
 using namespace std;
@@ -40,9 +43,13 @@ char* BuddyAllocator::alloc(int _length) {
     4. Once sbs blocks are available on the FreeList, remove one from the FreeList
     5. Shift the address down sizeof(BlockHeader) bytes and return it
   */
+
   int x = _length + sizeof(BlockHeader);
+  cout << x << endl;
   int index = ceil(log2(ceil((double) x / basic_block_size)));
+  cout << index << endl;
   int blockSizeReturn = (1 << index) * basic_block_size;
+
   if (FreeList[index].head != nullptr) { // found a block of correct size
     // return FreeList[index].remove();
     BlockHeader* b = FreeList[index].remove();
@@ -64,6 +71,7 @@ char* BuddyAllocator::alloc(int _length) {
   // a bigger block found
   while (index > indexCorrect) {
     BlockHeader* b = FreeList[index].remove();
+    //b->isFree = 0;
     BlockHeader* shb = split(b);
     --index;
     FreeList[index].insert (b);
@@ -75,12 +83,59 @@ char* BuddyAllocator::alloc(int _length) {
 }
 
 BlockHeader* BuddyAllocator::merge(BlockHeader* block1, BlockHeader* block2) {
-  if (block1 > block2) {
-    swap(block1, block2);
-  }
+    if (block1 > block2) {
+      swap(block1, block2);
+    }
 
-  block1->block_size *= 2;
-  return block1;
+    block1->block_size *= 2;
+    return block1;
+}
+
+void LinkedList::insert(BlockHeader *block) {
+		// if head node is null
+
+		if (head == nullptr) {
+			head = block;
+			_size++;
+			return;
+		}
+
+		// else traverse till last node
+		BlockHeader* current = head;
+		while (current->next != nullptr) {
+			current = current -> next;
+		}
+
+		current -> next = block;
+		_size++;
+}
+
+void LinkedList::remove(BlockHeader *block) {
+  if (head == nullptr) {
+			return;
+		} else if (head == block) {
+			BlockHeader* temp = head;
+			cout << head->block_size << endl;
+			cout << block->block_size << endl;
+			head = head->next;
+			_size--;
+			delete temp;
+			return;
+		}
+
+    // else traverse to find match and remove it
+		BlockHeader* current = head;
+		BlockHeader* prev = nullptr;
+		while (current != nullptr) {
+			if (current == block) {
+				// remove b
+				prev->next = current->next;
+				delete current;
+				return;
+			}
+			prev = current;
+			current = current -> next;
+		}
 }
 
 int BuddyAllocator::free(char* _a) {
@@ -99,27 +154,51 @@ int BuddyAllocator::free(char* _a) {
 		6. If everything is smooth, return 0
 	*/
   BlockHeader* b = (BlockHeader*)(_a - sizeof(BlockHeader));
-  
+  int index = getIndex(b->block_size);
+  BlockHeader* header = FreeList[index].head;
+  while(header != nullptr) {
+    if (header == b) {
+      return -1;
+    }
+    header = header->next;
+  }
+  FreeList[index].insert(b);
+  while(true) {
+    if (index >= FreeList.size() - 1) {
+      break;
+    }
+    index = getIndex(b->block_size);
+    BlockHeader* buddy = getbuddy(b);
+    if ((buddy->isFree == 1)&&(b->block_size == buddy->block_size)) {
+      b = merge(b, buddy);
+      FreeList[index].remove(b);
+      FreeList[index].remove(buddy);
+      FreeList[getIndex(b->block_size)].insert(b);
+    } else {
+      break;
+    }
+  }
+  return 0;
+  /*
+  BlockHeader* b = (BlockHeader*)(_a - sizeof(BlockHeader));
   while (true) {
-    int size = b->block_size;
     b->isFree = 1;
-    int index = getIndex(size);
+    BlockHeader* buddy = getbuddy(b);
+    int index = getIndex(b->block_size);
     if (index == FreeList.size()-1) {
       FreeList[index].insert(b);
       break;
     }
-
-    BlockHeader* buddy = getbuddy(b);
-    if (buddy->isFree) {
+    
+    if ((buddy->isFree) && (b->block_size == buddy->block_size)) {
       FreeList[index].remove(buddy);
-      b = merge(b, buddy);  
+      b = merge(b, buddy);
     } else {
-      FreeList[index+1].insert(b);
+      FreeList[index].insert(b);
       break;
     }
   }
-
-  return 0;
+  return 0;*/
 }
 
 BlockHeader* BuddyAllocator::getbuddy(BlockHeader* b) {
