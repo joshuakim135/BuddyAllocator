@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <assert.h>
+#include <math.h>
 using namespace std;
 typedef unsigned int uint;
 
@@ -13,8 +14,8 @@ public:
 	// think about what else should be included as member variables
 	int block_size;  // size of the block
 	BlockHeader* next; // pointer to the next block
-	bool free; // check
-	BlockHeader(int bSize = 0) : block_size(bSize), next(nullptr) {}
+	char isFree; // 1 means free, 0 is not free
+	BlockHeader(int bSize = 0) : block_size(bSize), next(nullptr), isFree(1) {}
 };
 
 class LinkedList{
@@ -88,15 +89,23 @@ private:
 	int total_memory_size;
 	char* start;
 	
-	
+
 private:
 	/* private function you are required to implement
 	 this will allow you and us to do unit test */
 	
 	BlockHeader* getbuddy (BlockHeader * addr); 
+		// buddy address = ((blockaddress - start) XOR blockSize) + start
 	// given a block address, this function returns the address of its buddy 
 	
-	bool arebuddies (BlockHeader* block1, BlockHeader* block2);
+	bool arebuddies (BlockHeader* block1, BlockHeader* block2) {
+		BlockHeader* b1Buddy = getbuddy(block1);
+		if (b1Buddy == block2) {
+			return true;
+		}
+
+		return false;
+	}
 	// checks whether the two blocks are buddies are not
 
 	BlockHeader* merge (BlockHeader* block1, BlockHeader* block2);
@@ -128,7 +137,9 @@ private:
 		5. Add both blocks to FreeList at new size
 		6. Return buddy's pointer
 	*/
-
+	int getIndex(int size) {
+		return log2 (size/basic_block_size);
+	}
 
 public:
 	BuddyAllocator (int _basic_block_size, int _total_memory_length); 

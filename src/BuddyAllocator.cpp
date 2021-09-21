@@ -1,6 +1,7 @@
 #include "BuddyAllocator.h"
 #include <iostream>
 #include <math.h>
+
 using namespace std;
 
 BlockHeader* BuddyAllocator::split (BlockHeader* b) {
@@ -32,10 +33,6 @@ BuddyAllocator::~BuddyAllocator (){
 // length = number of usable bytes [block - header]
 // return address of first byte of usable memory not block header
 char* BuddyAllocator::alloc(int _length) {
-  /* This preliminary implementation simply hands the call over the 
-     the C standard library! 
-     Of course this needs to be replaced by your implementation.
-  */
   /*
     1. Calculate smallest block size (sbs) needed for provided length
     2. Use FreeList to find available block of sbs or larger
@@ -49,6 +46,7 @@ char* BuddyAllocator::alloc(int _length) {
   if (FreeList[index].head != nullptr) { // found a block of correct size
     // return FreeList[index].remove();
     BlockHeader* b = FreeList[index].remove();
+    b->isFree = 0;
     return (char*)(b + 1);
   }
 
@@ -71,20 +69,68 @@ char* BuddyAllocator::alloc(int _length) {
     FreeList[index].insert (b);
     FreeList[index].insert (shb);
   }
-
-  return (char*)(FreeList[index].remove() + 1);
+  BlockHeader* block = FreeList[index].remove();
+  block->isFree = 0;
+  return (char*)(block + 1);
 }
 
-int BuddyAllocator::sbsNeeded(int blockSize){
+BlockHeader* BuddyAllocator::merge(BlockHeader* block1, BlockHeader* block2) {
+  if (block1 > block2) {
+    swap(block1, block2);
+  }
 
-  return 0;
+  block1->block_size *= 2;
+  return block1;
 }
 
 int BuddyAllocator::free(char* _a) {
-  /* Same here! */
-  delete _a;
+  /* Frees the section of physical memory previously allocated 
+	   using ’my_malloc’. Returns 0 if everything ok and -1 if it failed. */ 
+	/*
+		1. Shift address from usable memory to BlockH
+		2. Check if block is on FreeList
+			- if so return non-zero
+		3. Add block to FreeList
+		4. Check if buddy is free
+			- Use getbuddy() and check free bool if you choose to use one in BlockHeader
+			- Otherwise, iterate through FreeList of same size and call arebuddies() for each address until true
+		5. If buddy is free, call merge and go back to 4
+			- Continue until we reaach total memory size or buddy is not free
+		6. If everything is smooth, return 0
+	*/
+  BlockHeader* b = (BlockHeader*)(_a - sizeof(BlockHeader));
+  
+  while (true) {
+    int size = b->block_size;
+    b->isFree = 1;
+    int index = getIndex(size);
+    if (index == FreeList.size()-1) {
+      FreeList[index].insert(b);
+      break;
+    }
+
+    BlockHeader* buddy = getbuddy(b);
+    if (buddy->isFree) {
+      FreeList[index].remove(buddy);
+      b = merge(b, buddy);  
+    } else {
+      FreeList[index+1].insert(b);
+      break;
+    }
+  }
+
   return 0;
 }
+
+BlockHeader* BuddyAllocator::getbuddy(BlockHeader* b) {
+  // buddy address = ((blockaddress - start) XOR blockSize) + start
+  int offset = (int)((char*)b - start);
+  int buddy_offset = offset^b->block_size;
+  char* buddy = (buddy_offset + start);
+  return (BlockHeader*)buddy;
+  // return (BlockHeader*)(((int)((char*)b - start)^b->block_size) + start);
+}
+
 
 void BuddyAllocator::printlist (){
   cout << "Printing the Freelist in the format \"[index] (block size) : # of blocks\"" << endl;
